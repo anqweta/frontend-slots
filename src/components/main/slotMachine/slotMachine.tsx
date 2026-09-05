@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import styles from './slotMachine.module.scss'
@@ -7,10 +7,11 @@ import ReelsBoard from './reelsBoard/reelsBoard'
 import BetSelector from './betSelector/betSelector'
 import { SYMBOLS } from '@/constants'
 import { handleMoney, fetchMoneyWin } from '@/features/balance'
-import { addStatisticElement, handleIcon, onSpin } from '@/features/gameStatistic'
-
+import { handleCountWin, handleIcon, handlePercentWin, onSpin } from '@/features/gameStatistic'
 import { moneySelector } from '@/features/balance/selector'
 import { AppDispatch } from '@/features/store'
+import { betSelector, countWinSelector, isWinSelector } from '@/features/gameStatistic/selector'
+import { handleIsWin } from '@/features/gameStatistic'
 
 interface SpanClassItem {
   class: string
@@ -21,20 +22,19 @@ const spanClass: SpanClassItem[] = [
   { class: styles['span-yellow'] },
   { class: styles['span-blue'] },
 ]
-let countWin: number = 0
 
 export default function SlotMachine() {
-  
   const dispatch = useDispatch<AppDispatch>()
-  const [currentBet, setCurrentBet] = useState<number>(0)
+  const currentBet = useSelector(betSelector)
   const [isSpinning, setIsSpinning] = useState<boolean>(false)
   const [isReel, setReel] = useState<number[]>([0, 0, 0])
-  const [isWin, setWin] = useState<boolean>(false)
 
+  const countWin = useSelector(countWinSelector)
   const money = useSelector(moneySelector)
-
+  const isWin = useSelector(isWinSelector)
+  let countWinStat = 0
   const spinClick = (): void => {
-    setWin(false)
+    let isWinStat = false
 
     if (money < currentBet) {
       alert('Денег нет!')
@@ -79,25 +79,18 @@ export default function SlotMachine() {
         }),
       )
 
-      // let moneyWinStat: number = 0
-
       setIsSpinning(false)
-
-      const isWinStat: boolean = countSame.size <= 2
-      console.log(isWinStat + 'ЧИ Є ПЕРЕМОГА')
+      isWinStat = countSame.size <= 2
+      dispatch(handleIsWin({ isWin: isWinStat }))
+      console.log('ЧИ БУЛА ПЕРЕМОГА: ' + isWin)
 
       if (isWinStat) {
-        setWin(isWinStat)
-
         dispatch(fetchMoneyWin({ currentBet, countSame, SYMBOLS }))
-
-        // moneyWinStat = moneyWin
-        countWin++
+        dispatch(handleCountWin())
+        countWinStat++
+        console.log('БУЛА ДОДАНА ПЕРЕМОГА!!! КІЛЬКІСТЬ ПЕРЕМОГ: ' + countWinStat)
       }
-
-      // const balanceStat: number = money - currentBet + moneyWinStat
-      // dispatch(handlePercentWin({ countWin: countWin }))
-      // dispatch(addStatisticElement({ isWinStat, result, currentBet, moneyWinStat, balanceStat }))
+      dispatch(handlePercentWin({ countWin: countWinStat }))
     }, 5200)
 
     console.log(isWin + 'RESULT GAME')
@@ -115,7 +108,7 @@ export default function SlotMachine() {
         ))}
       </h2>
       <ReelsBoard positions={isReel} isSpinning={isSpinning} isWin={isWin} />
-      <BetSelector setCurrentBet={setCurrentBet} />
+      <BetSelector />
       <button onClick={spinClick} disabled={isSpinning} className={styles['button-spin']}>
         SPIN
       </button>

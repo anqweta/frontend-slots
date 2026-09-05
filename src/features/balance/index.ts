@@ -55,8 +55,8 @@ export const moneyLogic = createSlice({
       if (state.money >= amount) {
         state.money = state.money - amount
       }
-
-      state.moneyWin = amount
+      state.moneyWin = -amount
+      console.log("КІЛЬКІСТЬ ВИЙГРАНИХ ГРОШЕЙ: " + amount)
     })
   },
 })
