@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/features/store'
 import { addStatisticElement } from '@/features/gameStatistic'
 import { percentWinSelector } from '@/features/gameStatistic/selector'
+import { moneyWinSelector } from '@/features/balance/selector'
 
 interface AllGameStatisticProps {
   props: StatisticItem
@@ -13,14 +14,23 @@ interface AllGameStatisticProps {
 export default function AllGameStatistic({ props }: AllGameStatisticProps) {
   const dispatch = useDispatch<AppDispatch>()
 
-  const percentWin = useSelector(percentWinSelector);
+  const moneyWin = useSelector(moneyWinSelector)
 
   useEffect(() => {
+    console.log('USE EFFECT WORK')
     if (props.numberGame === 0) {
       return
     }
-    dispatch(addStatisticElement())
-  },  )
+    dispatch(
+      addStatisticElement({
+        isWinStat: false,
+        result: ['result'],
+        currentBet: 0,
+        moneyWinStat: moneyWin,
+        balanceStat: 0,
+      }),
+    )
+  }, [moneyWin])
 
   return (
     <div
