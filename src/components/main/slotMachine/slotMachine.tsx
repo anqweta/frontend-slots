@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import styles from './slotMachine.module.scss'
@@ -6,15 +6,11 @@ import Dots from './dots'
 import ReelsBoard from './reelsBoard/reelsBoard'
 import BetSelector from './betSelector/betSelector'
 import { SYMBOLS } from '@/constants'
-import { calcMoneyWin } from '@/utils/helper'
-import { handleMoneyWin, handleMoney } from '@/features/balance'
-import { handleIcon, handlePercentWin, onSpin } from '@/features/gameStatistic'
-import { addStatisticElement } from '@/features/gameStatistic'
+import { handleMoney, fetchMoneyWin } from '@/features/balance'
+import { addStatisticElement, handleIcon, onSpin } from '@/features/gameStatistic'
+
 import { moneySelector } from '@/features/balance/selector'
 import { AppDispatch } from '@/features/store'
-import { createAsyncThunk } from '@reduxjs/toolkit'
-import axios from 'axios'
-//import axios from 'axios'
 
 interface SpanClassItem {
   class: string
@@ -28,6 +24,7 @@ const spanClass: SpanClassItem[] = [
 let countWin: number = 0
 
 export default function SlotMachine() {
+  
   const dispatch = useDispatch<AppDispatch>()
   const [currentBet, setCurrentBet] = useState<number>(0)
   const [isSpinning, setIsSpinning] = useState<boolean>(false)
@@ -66,15 +63,6 @@ export default function SlotMachine() {
       countSame.set(item, (countSame.get(item) || 0) + 1)
     }
 
-    const fetchMoneyWin = createAsyncThunk('/fetchMoneyWin', async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/moneywin');
-        return response;
-      } catch {
-        throw new Error('nichogo ne poluchilos')
-      }
-    })
-
     console.log(countSame)
 
     setReel(newReel)
@@ -82,13 +70,7 @@ export default function SlotMachine() {
     dispatch(onSpin())
     setIsSpinning(true)
 
-    const result: string[] = [
-      SYMBOLS[newReel[0]].icon,
-      SYMBOLS[newReel[1]].icon,
-      SYMBOLS[newReel[2]].icon,
-    ]
-
-    setTimeout(() => {
+    setTimeout(async () => {
       dispatch(
         handleIcon({
           firstIcon: SYMBOLS[newReel[0]].icon,
@@ -97,7 +79,7 @@ export default function SlotMachine() {
         }),
       )
 
-      let moneyWinStat: number = 0
+      // let moneyWinStat: number = 0
 
       setIsSpinning(false)
 
@@ -106,20 +88,16 @@ export default function SlotMachine() {
 
       if (isWinStat) {
         setWin(isWinStat)
-        const { moneyWin } = fetchMoneyWin()
-        console.log('Ви вийграли, ФІНАЛЬНА кількість грошей: ' + moneyWin)
-        handleMoneyWin({ moneyWin: moneyWin })
-        dispatch(handleMoney({ amount: -moneyWin }))
-        moneyWinStat = moneyWin
+
+        dispatch(fetchMoneyWin({ currentBet, countSame, SYMBOLS }))
+
+        // moneyWinStat = moneyWin
         countWin++
       }
 
-      const balanceStat: number = money - currentBet + moneyWinStat
-      console.log('КІЛЬКІСТЬ ПЕРЕМОГ: ' + countWin)
-
-      dispatch(handlePercentWin({ countWin: countWin }))
-
-      dispatch(addStatisticElement({ isWinStat, result, currentBet, moneyWinStat, balanceStat }))
+      // const balanceStat: number = money - currentBet + moneyWinStat
+      // dispatch(handlePercentWin({ countWin: countWin }))
+      // dispatch(addStatisticElement({ isWinStat, result, currentBet, moneyWinStat, balanceStat }))
     }, 5200)
 
     console.log(isWin + 'RESULT GAME')

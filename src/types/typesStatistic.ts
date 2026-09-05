@@ -1,18 +1,17 @@
-
 export type handlePercentWinPayload = {
-    countWin: number, 
+  countWin: number
 }
 
 export type handleIconPayload = {
-    firstIcon: string,
-    secondIcon: string,
-    thirdIcon: string
+  firstIcon: string
+  secondIcon: string
+  thirdIcon: string
 }
 
 export type addStatisticElementPayload = {
-    isWinStat: boolean,
-    result: string[],
-    currentBet: number,
-    moneyWinStat: number, 
-    balanceStat: number
+  isWinStat: boolean
+  result: string[]
+  currentBet: number
+  moneyWinStat: number
+  balanceStat: number
 }
