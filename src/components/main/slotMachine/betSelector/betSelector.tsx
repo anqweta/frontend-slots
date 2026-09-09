@@ -11,26 +11,23 @@ interface BetItem {
   bet: number
 }
 
-let bets: BetItem[] = [
+const bets: BetItem[] = [
   { id: 1, bet: 25 },
   { id: 2, bet: 50 },
   { id: 3, bet: 100 },
   { id: 4, bet: 200 },
 ]
 
-interface BetSelectorProps {
-  setCurrentBet: (betAmount: number) => void
-}
-
 export default function BetSelector() {
   const dispatch = useDispatch()
 
   const [activeId, setActiveId] = useState<number>(0)
 
-  /*selectBet = (id: number, betAmount: number): void => {
+  const selectBet = (item: BetItem): void => {
+    const { id, bet } = item
     setActiveId(id)
-    setCurrentBet(betAmount)
-  } */
+    dispatch(handleBet({ bet }))
+  }
 
   return (
     <div className={styles.betSelector}>
@@ -40,7 +37,7 @@ export default function BetSelector() {
           key={index}
           props={item}
           isActive={activeId === item.id}
-          onClick={() => dispatch(handleBet({ bet: item.bet }))}
+          onClick={() => selectBet(item)}
         />
       ))}
     </div>

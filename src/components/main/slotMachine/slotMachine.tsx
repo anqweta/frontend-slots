@@ -10,7 +10,7 @@ import { handleMoney, fetchMoneyWin } from '@/features/balance'
 import { handleCountWin, handleIcon, handlePercentWin, onSpin } from '@/features/gameStatistic'
 import { moneySelector } from '@/features/balance/selector'
 import { AppDispatch } from '@/features/store'
-import { betSelector, countWinSelector, isWinSelector } from '@/features/gameStatistic/selector'
+import { betSelector, isWinSelector } from '@/features/gameStatistic/selector'
 import { handleIsWin } from '@/features/gameStatistic'
 
 interface SpanClassItem {
@@ -29,7 +29,7 @@ export default function SlotMachine() {
   const [isSpinning, setIsSpinning] = useState<boolean>(false)
   const [isReel, setReel] = useState<number[]>([0, 0, 0])
 
-  const countWin = useSelector(countWinSelector)
+  const countWin = useSelector(handleIsWin)
   const money = useSelector(moneySelector)
   const isWin = useSelector(isWinSelector)
   let countWinStat = 0
@@ -67,7 +67,6 @@ export default function SlotMachine() {
 
     setReel(newReel)
 
-    dispatch(onSpin())
     setIsSpinning(true)
 
     setTimeout(async () => {
@@ -85,12 +84,12 @@ export default function SlotMachine() {
       console.log('ЧИ БУЛА ПЕРЕМОГА: ' + isWin)
 
       if (isWinStat) {
-        dispatch(fetchMoneyWin({ currentBet, countSame, SYMBOLS }))
+        await dispatch(fetchMoneyWin({ currentBet, countSame, SYMBOLS })).unwrap()
         dispatch(handleCountWin())
-        countWinStat++
         console.log('БУЛА ДОДАНА ПЕРЕМОГА!!! КІЛЬКІСТЬ ПЕРЕМОГ: ' + countWinStat)
       }
-      dispatch(handlePercentWin({ countWin: countWinStat }))
+      dispatch(onSpin())
+      dispatch(handlePercentWin())
     }, 5200)
 
     console.log(isWin + 'RESULT GAME')

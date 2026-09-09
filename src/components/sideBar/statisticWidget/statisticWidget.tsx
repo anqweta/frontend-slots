@@ -5,11 +5,9 @@ import AllGameStatistic from './allGameStatistic/allGameStatistic'
 import styles from './statisticWidget.module.scss'
 import {
   betSelector,
-  countWinSelector,
   gameCountSelector,
   iconSelector,
   isWinSelector,
-  moneyWinSelector,
   percentWinSelector,
   statisticSelector,
 } from '@/features/gameStatistic/selector'
@@ -17,6 +15,7 @@ import { useEffect } from 'react'
 import { AppDispatch } from '@/features/store'
 import { addStatisticElement, handlePercentWin } from '@/features/gameStatistic'
 import { moneySelector } from '@/features/balance/selector'
+import { moneyWinSelector } from '@/features/balance/selector'
 
 interface StatisticInfoItem {
   title: string
@@ -37,10 +36,7 @@ export default function StatisticWidget() {
 
   const percentWin = useSelector(percentWinSelector)
 
-  console.log(moneyWin, ' - КІЛЬКІСТЬ ГРОШЕЙ У СТАТИСТИЦІ')
-
   useEffect(() => {
-    console.log('USE EFFECT WORK')
     if (gameCount === 0) {
       return
     }
@@ -53,11 +49,10 @@ export default function StatisticWidget() {
         balanceStat: money,
       }),
     )
-  }, [icon])
+  }, [gameCount])
 
   const statisticInfo: StatisticInfoItem[] = [
     { title: 'Counf of game: ', number: gameCount },
-    // { title: "Last win: ", number: moneyWin },
     { title: 'Total win: ', number: percentWin + '%' },
     { title: 'Icon: ', number: icon },
   ]

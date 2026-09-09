@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import type { addStatisticElementPayload, handleIsWinPayload } from "@/types/typesStatistic";
 import type { handleIconPayload } from '@/types/typesStatistic';
-import type { handlePercentWinPayload } from '@/types/typesStatistic';
 import { handleBetPayload } from "@/types/typesBalance";
 
 interface StatisticItem {
@@ -56,9 +55,8 @@ export const gameStatistic = createSlice({
             state.statistic = [...state.statistic, newElement];
         },
 
-        handlePercentWin: (state, action: PayloadAction<handlePercentWinPayload>) => {
-            const { countWin } = action.payload;
-            state.percentWin = Math.round((countWin / (state.gameCount)) * 100)
+        handlePercentWin: (state) => {
+            state.percentWin = Math.round((state.countWin / (state.gameCount)) * 100)
         },
 
         handleIcon: (state, action: PayloadAction<handleIconPayload> ) => {
