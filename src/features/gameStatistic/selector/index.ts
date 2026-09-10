@@ -9,3 +9,9 @@ export const gameCountSelector = (state: RootState) => state.gameStatistic.gameC
 export const iconSelector = (state: RootState) => state.gameStatistic.icon;
 
 export const statisticSelector = (state: RootState) => state.gameStatistic.statistic;
+
+export const betSelector = (state: RootState) => state.gameStatistic.bet;
+
+export const isWinSelector = (state: RootState) => state.gameStatistic.isWin;
+
+export const countWinSelector = (state: RootState) => state.gameStatistic.countWin;

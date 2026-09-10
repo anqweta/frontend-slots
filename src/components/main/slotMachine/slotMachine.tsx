@@ -1,124 +1,99 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
-import styles from "./slotMachine.module.scss";
-import Dots from "./dots";
-import ReelsBoard from "./reelsBoard/reelsBoard";
-import BetSelector from "./betSelector/betSelector";
-import { SYMBOLS } from "@/constants";
-import { calcMoneyWin } from "@/utils/helper";
-import { handleMoneyWin, handleMoney } from "@/features/balance";
-import {handleIcon, handlePercentWin, onSpin } from "@/features/gameStatistic"
-import { addStatisticElement } from "@/features/gameStatistic";
-import { moneySelector } from "@/features/balance/selector";
-import { AppDispatch } from "@/features/store";
+import styles from './slotMachine.module.scss'
+import Dots from './dots'
+import ReelsBoard from './reelsBoard/reelsBoard'
+import BetSelector from './betSelector/betSelector'
+import { SYMBOLS } from '@/constants'
+import { handleMoney, fetchMoneyWin } from '@/features/balance'
+import { handleCountWin, handleIcon, handlePercentWin, onSpin } from '@/features/gameStatistic'
+import { moneySelector } from '@/features/balance/selector'
+import { AppDispatch } from '@/features/store'
+import { betSelector, isWinSelector } from '@/features/gameStatistic/selector'
+import { handleIsWin } from '@/features/gameStatistic'
 
 interface SpanClassItem {
-  class: string;
+  class: string
 }
 
 const spanClass: SpanClassItem[] = [
-  { class: styles["span-red"] },
-  { class: styles["span-yellow"] },
-  { class: styles["span-blue"] },
-];
-let countWin: number = 0;
+  { class: styles['span-red'] },
+  { class: styles['span-yellow'] },
+  { class: styles['span-blue'] },
+]
 
 export default function SlotMachine() {
+  const dispatch = useDispatch<AppDispatch>()
+  const currentBet = useSelector(betSelector)
+  const [isSpinning, setIsSpinning] = useState<boolean>(false)
+  const [isReel, setReel] = useState<number[]>([0, 0, 0])
 
-  const dispatch = useDispatch<AppDispatch>();
-  const [currentBet, setCurrentBet] = useState<number>(0);
-  const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  const [isReel, setReel] = useState<number[]>([0, 0, 0]);
-  const [isWin, setWin] = useState<boolean>(false);
-
-  const money = useSelector(moneySelector);
-
+  const countWin = useSelector(handleIsWin)
+  const money = useSelector(moneySelector)
+  const isWin = useSelector(isWinSelector)
+  let countWinStat = 0
   const spinClick = (): void => {
-
-    setWin(false);
+    let isWinStat = false
 
     if (money < currentBet) {
-      alert("Денег нет!");
-      return;
+      alert('Денег нет!')
+      return
     }
 
     if (currentBet === 0) {
-      return;
+      return
     }
 
-    dispatch(handleMoney({ amount: currentBet }));
+    dispatch(handleMoney({ amount: currentBet }))
 
     if (isSpinning) {
-      return;
+      return
     }
 
-    const findIcon = (): number => Math.floor(Math.random() * SYMBOLS.length);
+    const findIcon = (): number => Math.floor(Math.random() * SYMBOLS.length)
 
-    const newReel: number[] = Array.from({ length: 3 }, () => findIcon());
+    const newReel: number[] = Array.from({ length: 3 }, () => findIcon())
 
-    console.log("ІНДЕКСИ ІКОНОК: " + newReel);
+    console.log('ІНДЕКСИ ІКОНОК: ' + newReel)
 
-    const countSame: Map<number, number> = new Map<number, number>();
+    const countSame: Map<number, number> = new Map<number, number>()
 
     for (const item of newReel) {
-      countSame.set(item, (countSame.get(item) || 0) + 1);
+      countSame.set(item, (countSame.get(item) || 0) + 1)
     }
 
-    console.log(countSame);
+    console.log(countSame)
 
-    setReel(newReel);
+    setReel(newReel)
 
-    dispatch(onSpin())
-    setIsSpinning(true);
+    setIsSpinning(true)
 
-    const result: string[] = [
-      SYMBOLS[newReel[0]].icon,
-      SYMBOLS[newReel[1]].icon,
-      SYMBOLS[newReel[2]].icon,
-    ];
+    setTimeout(async () => {
+      dispatch(
+        handleIcon({
+          firstIcon: SYMBOLS[newReel[0]].icon,
+          secondIcon: SYMBOLS[newReel[1]].icon,
+          thirdIcon: SYMBOLS[newReel[2]].icon,
+        }),
+      )
 
-    setTimeout(() => {
-
-      dispatch(handleIcon(
-        {firstIcon :SYMBOLS[newReel[0]].icon,
-        secondIcon:   SYMBOLS[newReel[1]].icon,
-        thirdIcon: SYMBOLS[newReel[2]].icon,}
-      ))
-
-      let moneyWinStat: number = 0;
-
-      setIsSpinning(false);
-
-      const isWinStat: boolean = countSame.size <= 2;
-      console.log(isWinStat + "ЧИ Є ПЕРЕМОГА");
+      setIsSpinning(false)
+      isWinStat = countSame.size <= 2
+      dispatch(handleIsWin({ isWin: isWinStat }))
+      console.log('ЧИ БУЛА ПЕРЕМОГА: ' + isWin)
 
       if (isWinStat) {
-        setWin(isWinStat);
-        const { moneyWin } = calcMoneyWin(currentBet, countSame, SYMBOLS);
-        console.log("Ви вийграли, ФІНАЛЬНА кількість грошей: " + moneyWin);
-        handleMoneyWin({moneyWin: moneyWin});
-        dispatch(handleMoney({amount: -moneyWin}));
-        moneyWinStat = moneyWin;
-        countWin++;
+        await dispatch(fetchMoneyWin({ currentBet, countSame, SYMBOLS })).unwrap()
+        dispatch(handleCountWin())
+        console.log('БУЛА ДОДАНА ПЕРЕМОГА!!! КІЛЬКІСТЬ ПЕРЕМОГ: ' + countWinStat)
       }
+      dispatch(onSpin())
+      dispatch(handlePercentWin())
+    }, 5200)
 
-      const balanceStat: number = money - currentBet + moneyWinStat;
-      console.log("КІЛЬКІСТЬ ПЕРЕМОГ: " + countWin);
-
-      dispatch(handlePercentWin({ countWin: countWin }));
-
-      dispatch(addStatisticElement(
-        {isWinStat,
-        result,
-        currentBet,
-        moneyWinStat,
-        balanceStat,}
-      ))
-    }, 5200);
-
-    console.log(isWin + "RESULT GAME");
-  };
+    console.log(isWin + 'RESULT GAME')
+  }
 
   return (
     <div className={styles.slotMachine}>
@@ -126,16 +101,16 @@ export default function SlotMachine() {
         {spanClass.map((item, index) => (
           <Dots key={index} props={item} />
         ))}
-        LUCKY SPIN{" "}
+        LUCKY SPIN{' '}
         {spanClass.map((item, index) => (
           <Dots key={index} props={item} />
         ))}
       </h2>
       <ReelsBoard positions={isReel} isSpinning={isSpinning} isWin={isWin} />
-      <BetSelector setCurrentBet={setCurrentBet} />
-      <button onClick={spinClick} disabled={isSpinning} className={styles["button-spin"]}>
+      <BetSelector />
+      <button onClick={spinClick} disabled={isSpinning} className={styles['button-spin']}>
         SPIN
       </button>
     </div>
-  );
+  )
 }

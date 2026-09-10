@@ -1,13 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import type { addStatisticElementPayload } from "@/types/typesStatistic";
+import type { addStatisticElementPayload, handleIsWinPayload } from "@/types/typesStatistic";
 import type { handleIconPayload } from '@/types/typesStatistic';
-import type { handlePercentWinPayload } from '@/types/typesStatistic';
+import { handleBetPayload } from "@/types/typesBalance";
 
 interface StatisticItem {
     numberGame: number;
     result: string | number;
-    icon: number | string[];
+    icon: number[] | string[];
     bet: number;
     moneyWin: number;
     money: number;
@@ -19,6 +19,9 @@ interface statisticType {
     percentWin: number;
     moneyWin: number;
     icon: number[] | string[];
+    bet: number;
+    isWin: boolean;
+    countWin: number
 }
 
 const initialState: statisticType = {
@@ -26,7 +29,10 @@ const initialState: statisticType = {
     statistic: [],
     percentWin: 0,
     moneyWin: 0,
-    icon: []
+    icon: [],
+    bet: 0,
+    isWin: false,
+    countWin: 0
 }
 
 export const gameStatistic = createSlice({
@@ -38,7 +44,7 @@ export const gameStatistic = createSlice({
             const { isWinStat, result, currentBet, moneyWinStat, balanceStat } = action.payload;
 
             const newElement: StatisticItem = {
-                numberGame: state.gameCount + 1,
+                numberGame: state.gameCount,
                 result: isWinStat ? "win" : "lose",
                 icon: result,
                 bet: currentBet,
@@ -49,9 +55,8 @@ export const gameStatistic = createSlice({
             state.statistic = [...state.statistic, newElement];
         },
 
-        handlePercentWin: (state, action: PayloadAction<handlePercentWinPayload>) => {
-            const { countWin} = action.payload;
-            state.percentWin = Math.round((countWin / (state.gameCount + 1)) * 100)
+        handlePercentWin: (state) => {
+            state.percentWin = Math.round((state.countWin / (state.gameCount)) * 100)
         },
 
         handleIcon: (state, action: PayloadAction<handleIconPayload> ) => {
@@ -61,11 +66,23 @@ export const gameStatistic = createSlice({
 
         onSpin: (state) => {
             state.gameCount += 1;
+        },
+
+        handleBet: (state, action: PayloadAction<handleBetPayload>) => {
+            state.bet = action.payload.bet;
+        },
+
+        handleIsWin: (state, action: PayloadAction<handleIsWinPayload>) => {
+            state.isWin = action.payload.isWin
+        },
+
+        handleCountWin: (state) => {
+            state.countWin += 1;
         }
     }
 })
 
-export const {addStatisticElement, handleIcon, handlePercentWin, onSpin} = gameStatistic.actions
+export const {addStatisticElement, handleIcon, handlePercentWin, onSpin, handleBet, handleIsWin, handleCountWin} = gameStatistic.actions
 
 export const gameStatisticReducer = gameStatistic.reducer;
 

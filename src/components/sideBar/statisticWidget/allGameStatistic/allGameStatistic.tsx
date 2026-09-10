@@ -1,18 +1,17 @@
-import styles from "./allGameStatistic.module.scss";
-import { StatisticItem } from "@/App";
+import { useEffect } from 'react'
+import styles from './allGameStatistic.module.scss'
+import { StatisticItem } from '@/App'
 
 interface AllGameStatisticProps {
-  props: StatisticItem;
+  props: StatisticItem
 }
 
 export default function AllGameStatistic({ props }: AllGameStatisticProps) {
-  if (props.numberGame === 0) {
-    return;
-  }
+
 
   return (
     <div
-      className={`${styles["item-stat"]} ${props.result === "win" ? styles["item-green"] : styles["item-red"]}`}
+      className={`${styles['item-stat']} ${props.result === 'win' ? styles['item-green'] : styles['item-red']}`}
     >
       <p>
         Game Number: <span>{props.numberGame}</span>
@@ -33,5 +32,5 @@ export default function AllGameStatistic({ props }: AllGameStatisticProps) {
         Balance: <span>{props.money}</span>
       </p>
     </div>
-  );
+  )
 }

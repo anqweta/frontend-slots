@@ -4,7 +4,6 @@ import Header from './components/header/header'
 import Main from './components/main/main'
 import SideBar from './components/sideBar/sideBar'
 import ChangeThemeContext from './providers/changeTheme'
-import Button from '@mui/material/Button'
 import { useState } from 'react'
 import { darkTheme } from '@/theme/theme'
 import { Theme } from '@emotion/react'
@@ -30,9 +29,6 @@ function App() {
           <Header />
           <Main />
           <SideBar />
-          <Button className="button" variant="contained">
-            Hello world
-          </Button>
         </div>
       </ThemeProvider>
     </ChangeThemeContext.Provider>
